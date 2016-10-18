@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python2.7
 import sys
 import os
 import jsonpickle
@@ -17,7 +17,9 @@ if __name__ == "__main__":
 	auth = OAuthHandler(consumer_key, consumer_secret)
 	auth.set_access_token(access_token, access_secret)
  
-	api = tweepy.API(auth, wait_on_rate_limit=True)
+	api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify = True,
+                       retry_count = 5, #retry 5 times
+                       retry_delay = 5) #seconds to wait for retry
 
 	#print our own status updates
 	#for status in tweepy.Cursor(api.home_timeline).items(10):
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     #          '#Pixel OR #Google' \
     #          '"iPhone" OR "iphone" OR "samsung" OR "galaxy"'
 			  
-	searchQuery = '"iPhone" OR "iphone" OR "samsung" OR "SamSung" OR "galaxy" OR "pixelphone" OR "Apple" OR "Google"'
+	searchQuery = '"iPhone" OR "iphone" OR "samsung" OR "SamSung" OR "Galaxy" OR "galaxy phone" OR "pixel phone" OR "Apple" OR "Google"'
 
 	#Maximum number of tweets we want to collect 
 	maxTweets = 1000000
@@ -60,7 +62,7 @@ if __name__ == "__main__":
 
 	#Tell the Cursor method that we want to use the Search API (api.search)
     #Also tell Cursor our query, and the maximum number of tweets to return
-		for tweet in tweepy.Cursor(api.search,q=searchQuery).items(maxTweets) :         
+		for tweet in tweepy.Cursor(api.search,q=searchQuery, lang="en").items(maxTweets) :         
 
 			#Verify the tweet has place info before writing (It should, if it got past our place filter)
 			if tweet.place is not None:
