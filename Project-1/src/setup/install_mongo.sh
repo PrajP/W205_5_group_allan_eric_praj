@@ -10,7 +10,7 @@ cp /root/W205_5_group_allan_eric_praj/Project-1/src/setup/mongodb.repo /etc/yum.
 #enabled=1
 
 yum install mongo-10gen mongo-10gen-server
-mkdir /data/mongodb
+#mkdir /data/mongodb
 
 #cp /root/W205_5_group_allan_eric_praj/Project-1/src/setup/mongod.conf /etc/
 
