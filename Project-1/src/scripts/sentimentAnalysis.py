@@ -67,6 +67,30 @@ def dfCleanUp(df):
 	df.place = place_filled
 	place_df = json_normalize(df.place)
 	place_df.columns = ['place.' + s for s in place_df.columns.values]
+	
+	place_city_state = place_df['place.full_name'].str.split(',', expand = True)
+	
+	place_city_state_column_names = []
+	for i in range(len(place_city_state.columns)):
+		if i ==0:
+			place_city_state_column_names.append("place.city")
+		elif i==1:
+			place_city_state_column_names.append("place.state")
+		else:
+			delCol = "delete" + str(i)
+			place_city_state_column_names.append(delCol)
+	
+	place_city_state.columns = place_city_state_column_names
+	
+	#keep only first two
+	place_city_state = place_city_state[['place.city','place.state']]
+	place_city_state['place.city'] = place_city_state['place.city'].str.strip()
+	place_city_state['place.state'] = place_city_state['place.state'].str.strip()
+	
+	#drop place.full_name and concat the parsed columns
+	place_df = place_df.drop(['place.full_name', 'place.name'],1)
+	place_df = pd.concat([place_df, place_city_state], axis =1)
+		
 	df = pd.concat([df, place_df], axis = 1)
 
 	#df.head(5).to_csv(outfile, header = True, index = False)
