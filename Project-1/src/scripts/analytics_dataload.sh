@@ -2,6 +2,11 @@
 
 # Create directory in HDFS and put files into hdfs
 
+NOW=$(date +"%Y-%m-%d")
+echo $NOW
+
+cd /data/src/scripts
+echo $(pwd)
 echo 'Removing files temporary files.'
 
 rm -r /data/analysis_output/apple_result_temp.tsv
@@ -50,7 +55,7 @@ sleep 5
 
 echo 'Files moved to final destination.'
 
-cd /data/project/
+cd /data/src/scripts/
 
 echo $(pwd)
 

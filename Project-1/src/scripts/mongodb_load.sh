@@ -7,7 +7,7 @@
 NOW=$(date +"%Y-%m-%d")
 echo $NOW
 LOGFILE="log-$NOW.log"
-cd /data/project
+cd /data/src/scripts
 #current_dir = $(pwd)
 
 echo "current directory: "$(pwd)
