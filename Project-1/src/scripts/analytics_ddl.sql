@@ -41,6 +41,16 @@ LOAD DATA INPATH '/user/w205/analysis_data/google/google_result.tsv' INTO TABLE 
 LOAD DATA INPATH '/user/w205/analysis_data/apple/apple_result.tsv' INTO TABLE product_analytics.clean_tweet_dtl;
 LOAD DATA INPATH '/user/w205/analysis_data/samsung/samsung_result.tsv' INTO TABLE product_analytics.clean_tweet_dtl;
 
+DROP TABLE IF EXISTS product_analytics.features PURGE;
+
+CREATE  EXTERNAL TABLE IF NOT EXISTS product_analytics.features
+(
+  `feature` string 
+ )   ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde' WITH SERDEPROPERTIES ("separatorChar"="\t", "quoteChar"='"', "escapeChar" = '\\')
+LOCATION 'hdfs://localhost:8020/user/w205/product_features';
+
+LOAD DATA INPATH '/user/w205/analysis_data/features/features.txt' INTO TABLE product_analytics.features;
+
 
 DROP TABLE IF EXISTS product_analytics.sentiment_check PURGE; 
 
