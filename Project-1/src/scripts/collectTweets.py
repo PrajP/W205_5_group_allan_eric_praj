@@ -1,3 +1,4 @@
+#!/usr/local/bin/python2.7
 import argparse
 import sys
 import os
@@ -10,6 +11,7 @@ import datetime
 parser = argparse.ArgumentParser(description='Parse the search strings.')
 parser.add_argument('-q', '--queryString', action="store", dest="queryString", metavar='QueryStrings', nargs='+', help='Enter the Search Query strings separated by space: -q Samsung galaxy iPhone...')
 parser.add_argument('-o', '--outputName', action="store", dest="output", metavar='outputFileName', nargs=1, help='Enter the Output File Name for the search')
+parser.add_argument('-d', '--outputDir', action ="store", dest="outputDir", metavar='outputDirectory', nargs=1, help='Enter the output directory')
 args = parser.parse_args()
 				
 print "Search terms are: "+" ".join(args.queryString)
@@ -24,7 +26,7 @@ searchQuery = 'place:96683cc9126741d1 ' + queryString_kw + " OR " + queryString_
 
 #define output file name
 year_date = str(datetime.datetime.now()).split(' ')[0]
-fName = args.output[0]+'_SmartPhone_tweets_'+year_date+'.json' # We'll store the tweets in a text file.
+fName = args.outputDir[0]+args.output[0]+'_SmartPhone_tweets_'+year_date+'.json' # We'll store the tweets in a text file.
 
 #access keys					
 consumer_key = 	'irBLC6hrDRi0Qjbd1OZb3Tvke'

@@ -6,6 +6,8 @@ import sys
 import argparse
 import os
 import glob
+import string
+import gc
 from pymongo import MongoClient
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
@@ -40,6 +42,17 @@ def readJson(file):
 
 def get_merged_json(flist, **kwargs):
     return pd.concat([readJson(f) for f in flist], **kwargs)
+	
+def toLowerCase(sentence):
+    return sentence.lower()
+
+def removeNonAlphaNumericChar(sentence):
+    regex = re.compile('[^a-zA-Z]')
+    return " ".join(list(filter(None, [regex.sub('', s)  for s in sentence.split()])))
+	
+def removePunctuations(sentence):
+    sentence = ''.join([i for i in sentence if i not in frozenset(string.punctuation)])
+    return sentence
 	
 def dfCleanUp(df):
 	'''
@@ -137,7 +150,8 @@ def dfCleanUp(df):
 	
 
 	#drop the unwanted columns
-	df = df.drop(['_id','contributors','coordinates','metadata','source','entities','extended_entities','geo','place','user','user.profile_background_color','user.profile_background_image_url','user.profile_background_image_url_https',
+	df = df.drop(['_id','id_str','favorited','contributors','coordinates','metadata','source','entities','extended_entities',
+	'geo','place','user','user.profile_background_color','user.profile_background_image_url','user.profile_background_image_url_https',
 	'user.profile_background_tile','user.profile_banner_url', 'user.profile_image_url',
 	'user.profile_image_url_https', 'user.profile_link_color',
 	'user.profile_sidebar_border_color', 'user.profile_sidebar_fill_color',
@@ -145,7 +159,22 @@ def dfCleanUp(df):
 	'user.description','user.entities.description.urls','user.entities.url.urls',
 	'place.bounding_box.coordinates','place.bounding_box.type','place.contained_within',
 	'in_reply_to_screen_name','in_reply_to_status_id','in_reply_to_status_id_str',
-	'in_reply_to_user_id','in_reply_to_user_id_str'], 1)
+	'in_reply_to_user_id','in_reply_to_user_id_str', 'is_quote_status','quoted_status',
+	'quoted_status_id','quoted_status_id_str', 'truncated','user.contributors_enabled',
+	'user.default_profile','user.default_profile_image','user.follow_request_sent',
+	'user.following','user.geo_enabled','user.has_extended_profile','user.id_str', 'user.name',
+	'user.is_translation_enabled','user.is_translator','user.lang','user.location',
+	'user.notifications','user.protected','user.translator_type','user.url',
+	'user.utc_offset','user.verified','place.url'], 1)
+	
+	
+	#clean up all fields
+	#remove all return characters, double quotes, url links (http... or https...) (text only), emoticons <[a-z][0-9> (text only)
+	newText = []
+	for sentence in df['text']:
+		newText.append(toLowerCase(removeNonAlphaNumericChar(removePunctuations(sentence))))
+	
+	df['text'] = newText
 	
 	return df
 	
@@ -154,28 +183,36 @@ def applyFilters(df):
 	#apply filters
 	#1. English only
 	print "filtering out non-English tweets.."
-	print str(len(df) - len(df[(df['user.lang'] == 'en')])) + " rows filtered."
-	df = df[(df['user.lang'] == 'en')]
+	print str(len(df) - len(df[(df['lang'] == 'en')])) + " rows filtered."
+	df = df[(df['lang'] == 'en')]
 	print "done."
 	print df.shape
 	
-	#2. retweeted = False
+	#2. tweets in US only
+	print "filtering out non-US tweets.."
+	print str(len(df) - len(df[(df['place.country_code'] == 'US')])) + " rows filtered."
+	df = df[(df['place.country_code'] == 'US')]
+	print "done."
+	print df.shape
+	
+	#3. retweeted = False
 	print "filtering out retweets..."
 	print str(len(df) - len(df[(df.retweeted == False)])) + " rows filtered."
 	df = df[(df.retweeted == False)]
 	print "done."
 	print df.shape
 
-	#3. only one user per tweet
+	#4. only one user per tweet
 	print "filtering out duplicate tweets from the same user..."
 	print str(len(df) - len(df.drop_duplicates(subset = 'user.id', keep = 'first'))) + " rows filtered."
 	df = df.drop_duplicates(subset = 'user.id', keep = 'first')
 	print "done."
 	print df.shape
 
-	#4. keyword filtering
+	#5. keyword filtering
 	print "filtering out tweets by key words..."
-	excludes = ['Milky Way', 'LA Galaxy', 'Guardians of the galaxy']
+	excludes = ['Milky Way', 'LA Galaxy', 'Mario', 'Guardians of the galaxy','fruit','food','pie',
+	'google search','resolution','google doc','Clearance', 'Otterbox', 'iPhone Cases', 'Samsung Cases']
 	pat = '|'.join(map(re.escape, excludes))
 	cond = df.text.str.contains(pat, case = False)
 	print str(len(df) - len(df.drop(df[cond].index))) + " rows filtered."
@@ -186,8 +223,8 @@ def applyFilters(df):
 	return df
 	
 	
-def writeDFtoCSV(df, outfilename):
-	df.to_csv(outfilename, header = True, index = False)
+def writeDFtoTSV(df, outfilename):
+	df.to_csv(outfilename, header = True, index = False, sep ="\t")
 	
 def sentimentScoring(sentence):
 	sid = SentimentIntensityAnalyzer()
@@ -239,10 +276,10 @@ def main():
 	outPath = "/data/analysis_output"
 	
 	for i in range(len(companies)):	
+
 		print "Retrieving "+ companies[i] + " collection from db..."
-		
-		
-		outCSV = outPath+"/"+companies[i]+"_result.csv"
+				
+		outTSV = outPath+"/"+companies[i]+"_result.tsv"
 		
 		#connect to mongo
 		client = MongoClient()
@@ -296,13 +333,24 @@ def main():
 			
 			#print(sentence)
 			#print(ss)
+			
+		#google extra columns
+		if companies[i] == 'google':
+			df_norm = df_norm.drop(['retweeted_status','scopes'], 1)
 		
 		#output to csv
-		print "Writing to csv..."
-		writeDFtoCSV(df_norm, outCSV)
+		print 'The dimension of data frame is ' + str(df_norm.shape[0]) + ' x ' + str(df_norm.shape[1])
+		print "Writing to tsv file..."
+		writeDFtoTSV(df_norm, outTSV)
 		
 		print "done."
 		
+		#delete all df to free up mem
+		del df
+		del df_norm
+		gc.collect()
+		
+		#close the conn
 		client.close()
 
 if __name__ == "__main__": 

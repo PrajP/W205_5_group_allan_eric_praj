@@ -1,4 +1,4 @@
-
+#!/bin/bash
 cp /root/W205_5_group_allan_eric_praj/Project-1/src/setup/mongodb.repo /etc/yum.repos.d/
 
 #vim /etc/yum.repos.d/mongodb.repo

@@ -1,0 +1,31 @@
+#!/bin/bash
+#setup script for dependencies
+#super user required
+###############################
+#Install python 2.7 on the AMI
+
+yum groupinstall "Development tools"
+wget https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz
+tar xzvf Python-2.7.12.tgz
+cd Python-2.7.12
+./configure --prefix=/usr/local
+make && sudo make altinstall
+
+#python 2.7 installed to /usr/local/bin/python2.7
+
+#set up easy_install and pip
+wget --no-check-certificate https://bootstrap.pypa.io/ez_setup.py
+/usr/local/bin/python2.7 ez_setup.py
+/usr/local/bin/easy_install-2.7 pip
+
+#install tweepy required packages
+pip2.7 install tweepy
+yum install gcc libffi-devel python-devel openssl-devel
+pip2.7 install requests[security]
+
+#install required python packages for semantic analysis
+pip2.7 install numpy pandas pymongo nlt
+
+#mongoDB installation
+bash install_mongo.sh
+
