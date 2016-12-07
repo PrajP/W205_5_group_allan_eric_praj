@@ -37,7 +37,7 @@ PREREQUISTES:
 
 	cd /data/W205_5_group_allan_eric_praj/Project-1/src/scripts
 	bash mergeJson.sh /data/rawdata/apple phone
-	bash mergeJson.sh /data/rawdata/goggle phone
+	bash mergeJson.sh /data/rawdata/google phone
 	bash mergeJson.sh /data/rawdata/samsung phone
 	
 	#produces *merged.json in each folder
