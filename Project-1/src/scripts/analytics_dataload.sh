@@ -4,9 +4,17 @@
 
 NOW=$(date +"%Y-%m-%d")
 echo $NOW
+#whoami
 
-cd /data/src/scripts
-echo $(pwd)
+#dir1=$'data/w205_test_1/W205_5_test_1/Project-1'
+dir1=$'data/W205_5_group_allan_eric_praj/Project-1'
+
+cd /$dir1/src/scripts
+#cd /data/src/scripts
+echo "Now in:"$(pwd)
+
+
+#su - w205
 
 echo 'Make directory structures for all hdfs files.'
 hdfs dfs -mkdir -p /user/w205/product_features/
@@ -14,14 +22,17 @@ hdfs dfs -mkdir -p /user/w205/analysis_data/apple/
 hdfs dfs -mkdir -p /user/w205/analysis_data/samsung/
 hdfs dfs -mkdir -p /user/w205/analysis_data/google/
 hdfs dfs -mkdir -p /user/w205/analysis_data/features/
+
 sleep 5
 echo 'Directory structures completed.'
 
 
-echo 'Removing files temporary files.'
-rm -r /data/analysis_output/apple_result_temp.tsv
-rm -r /data/analysis_output/google_result_temp.tsv
-rm -r /data/analysis_output/samsung_result_temp.tsv
+#echo 'Removing files temporary files.'
+
+
+rm -r /$dir1/data/analysis_output/apple_result_temp.tsv
+rm -r /$dir1/data/analysis_output/google_result_temp.tsv
+rm -r /$dir1/data/analysis_output/samsung_result_temp.tsv
 
 
 sleep 5
@@ -38,9 +49,9 @@ echo 'Removed hive table location files..'
 
 echo 'Copy clean analysis files after removing headers to as temporary files.'
 
-tail -n +2 /data/analysis_output/apple_result.tsv > /data/analysis_output/apple_result_temp.tsv
-tail -n +2 /data/analysis_output/google_result.tsv > /data/analysis_output/google_result_temp.tsv
-tail -n +2 /data/analysis_output/samsung_result.tsv > /data/analysis_output/samsung_result_temp.tsv
+tail -n +2 /$dir1/data/analysis_output/apple_result.tsv > /$dir1/data/analysis_output/apple_result_temp.tsv
+tail -n +2 /$dir1/data/analysis_output/google_result.tsv > /$dir1/data/analysis_output/google_result_temp.tsv
+tail -n +2 /$dir1/data/analysis_output/samsung_result.tsv > /$dir1/data/analysis_output/samsung_result_temp.tsv
 
 sleep 5
 
@@ -58,18 +69,21 @@ echo 'Hadoop files removed.'
 
 echo 'Copy clean analysis files to hdfs.'
 
-hdfs dfs -put /data/analysis_output/apple_result_temp.tsv /user/w205/analysis_data/apple/apple_result.tsv
-hdfs dfs -put /data/analysis_output/samsung_result_temp.tsv /user/w205/analysis_data/samsung/samsung_result.tsv
-hdfs dfs -put /data/analysis_output/google_result_temp.tsv /user/w205/analysis_data/google/google_result.tsv
-hdfs dfs -put /data/analysis_output/features.txt /user/w205/analysis_data/features/features.txt
+hdfs dfs -put /$dir1/data/analysis_output/apple_result_temp.tsv /user/w205/analysis_data/apple/apple_result.tsv
+hdfs dfs -put /$dir1/data/analysis_output/samsung_result_temp.tsv /user/w205/analysis_data/samsung/samsung_result.tsv
+hdfs dfs -put /$dir1/data/analysis_output/google_result_temp.tsv /user/w205/analysis_data/google/google_result.tsv
+hdfs dfs -put /$dir1/src/scripts/features.txt /user/w205/analysis_data/features/features.txt
 
 sleep 5
 
 echo 'Files moved to final destination.'
 
-cd /data/src/scripts/
+#cd /data/src/scripts/
+cd /$dir1/src/scripts
 
+echo 'Load product analytics data:'
 echo $(pwd)
+
 
 hive -f $(pwd)/analytics_ddl.sql
 
